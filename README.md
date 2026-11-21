@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BookLeagued
 
-## Getting Started
+A cozy, responsive book community built with the Next.js App Router. The current demo is fully usable without a backend: accounts, books, discussions, comments, and profile changes are saved in the browser's local storage.
 
-First, run the development server:
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Create an account on `/signup`, or use **Explore as a guest** to try the seeded reading room. The guest account cannot log in with a password; use the guest button to activate it.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/` — home, genre recommendations, featured books, and recent discussions
+- `/login`, `/signup` — browser-only demo account flow
+- `/books` — live title/author/genre search and genre filter
+- `/books/[id]` — book details and related conversations
+- `/books/new` — add a book (or edit one with `?edit=<id>`)
+- `/groups` — discussion feed
+- `/posts/new` — create a recommendation/discussion (or edit with `?edit=<id>`)
+- `/posts/[id]` — post detail, comments, and own-comment editing/deletion
+- `/profile` — profile, contributed books, posts, comments, and account deletion
 
-## Learn More
+## Local data layer
 
-To learn more about Next.js, take a look at the following resources:
+`lib/demo-store.tsx` provides seed data, TypeScript models, CRUD actions, and a React context. It persists to the browser key `bookleagued-demo-v1`. Components use the store API rather than accessing storage directly, so its actions can later be replaced with API/server actions and Prisma.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Passwords in the demo are salted and hashed with the browser Web Crypto PBKDF2 API before local storage. This is only a local prototype; client-side authentication and local storage do not protect real accounts or data. Add server-side authentication and password hashing before production.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Structure
 
-## Deploy on Vercel
+```text
+app/
+  books/
+    [id]/page.tsx
+    new/page.tsx
+    page.tsx
+  groups/page.tsx
+  login/page.tsx
+  posts/
+    [id]/page.tsx
+    new/page.tsx
+  profile/page.tsx
+  signup/page.tsx
+  globals.css
+  layout.tsx
+  page.tsx
+  providers.tsx
+components/
+  auth-form.tsx
+  book-card.tsx
+  book-detail.tsx
+  book-form.tsx
+  books-catalog.tsx
+  post-card.tsx
+  post-detail.tsx
+  post-form.tsx
+  site-header.tsx
+lib/
+  demo-store.tsx
+prisma/
+  schema.prisma
+public/images/
+  books/
+  garden-doorway.jpg
+  library.jpg
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The supplied garden/library backgrounds and local cover images are used directly from `public/images`. A PostgreSQL/Prisma schema is retained at `prisma/schema.prisma` as a starting point for replacing the mock store.

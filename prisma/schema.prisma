@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  avatarImageUrl String?
+  passwordHash  String?
+  avatar        String?
+  bio           String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  posts    Post[]
+  comments Comment[]
+  books    Book[]    @relation("BookContributor")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionToken])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model Book {
+  id          String   @id @default(cuid())
+  title       String
+  author      String
+  genre       String
+  description String   @db.Text
+  coverImageUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  addedByUserId String?
+
+  addedBy User?   @relation("BookContributor", fields: [addedByUserId], references: [id], onDelete: SetNull)
+  posts   Post[]
+
+  @@index([title])
+  @@index([genre])
+}
+
+model Post {
+  id            String   @id @default(cuid())
+  title         String
+  description   String   @db.Text
+  authorUserId  String
+  bookId        String?
+  coverImageUrl String?
+  readingUrl    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  author   User      @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+  book     Book?     @relation(fields: [bookId], references: [id], onDelete: SetNull)
+  comments Comment[]
+
+  @@index([authorUserId, createdAt])
+  @@index([bookId, createdAt])
+}
+
+model Comment {
+  id           String   @id @default(cuid())
+  content      String   @db.Text
+  authorUserId String
+  postId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  author User @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+}
